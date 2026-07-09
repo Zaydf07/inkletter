@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teams &amp; Collaboration · Inkletter</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F1ECE1;--panel:#fff;--panel-2:#FBF7EF;--field:#F2EDE2;--line:#E3DACA;--line-soft:#EDE6D8;--text:#211C14;--muted:#6E6557;--faint:#A89E8C;--ink:#4B43C4;--clay:#B65334;--green:#2E8E6A;--gold:#B68A1E;--grad:linear-gradient(165deg,#5750D8,#3F37AC);--ff-d:'Newsreader',Georgia,serif;--ff-b:'Hanken Grotesk',system-ui,sans-serif;--ff-m:'JetBrains Mono',ui-monospace,monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--ff-b);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.nav{background:rgba(241,236,225,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line-soft);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--ff-d);font-size:19px;font-weight:600}
+.brand .mk{width:30px;height:30px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:999px;font-weight:600;font-size:13.5px;border:1.5px solid transparent;transition:.16s;font-family:inherit}
+.btn-primary{background:var(--grad);color:#fff}.btn-primary:hover{opacity:.9}
+.btn-ghost{border-color:var(--line);color:var(--text);background:var(--panel)}.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+
+.wrap{max-width:1000px;margin:0 auto;padding:0 28px}
+.hero{text-align:center;padding:60px 0 20px}
+.kicker{font-family:var(--ff-m);font-size:11.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--clay)}
+h1{font-family:var(--ff-d);font-size:clamp(32px,5vw,48px);font-weight:500;letter-spacing:-.02em;margin:16px 0 12px}
+h1 em{font-style:italic;color:var(--ink)}
+.hero p{font-size:17px;color:var(--muted);max-width:520px;margin:0 auto}
+.demo-banner{max-width:520px;margin:22px auto 0;background:rgba(182,136,30,.1);border:1px solid rgba(182,136,30,.3);border-radius:12px;padding:12px 18px;font-size:13px;color:#8a6a12;display:flex;align-items:center;gap:9px;justify-content:center}
+
+/* mock app window */
+.mock{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 30px 70px -34px rgba(33,28,20,.35);overflow:hidden;margin:34px 0 20px}
+.mock-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line-soft);background:var(--panel-2)}
+.mock-dots span{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.mock-title{margin-left:8px;font-weight:600;font-size:13.5px}
+.mock-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:760px){.mock-body{grid-template-columns:1fr}}
+.mock-col{padding:22px 24px}
+.mock-col+.mock-col{border-left:1px solid var(--line-soft)}
+.mock-h{font-family:var(--ff-m);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+
+/* member rows */
+.member{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.member:last-child{border-bottom:none}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex:none}
+.member .info{flex:1;min-width:0}
+.member .nm{font-size:13.5px;font-weight:600}
+.member .em{font-size:11.5px;color:var(--faint)}
+.role{font-family:var(--ff-m);font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.05em}
+.role-owner{background:rgba(75,67,196,.12);color:var(--ink)}
+.role-editor{background:rgba(46,142,106,.14);color:var(--green)}
+.role-commenter{background:rgba(182,136,30,.14);color:var(--gold)}
+.role-viewer{background:rgba(168,158,140,.18);color:var(--muted)}
+.invite{margin-top:14px;display:flex;gap:8px}
+.invite input{flex:1;padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;background:var(--field);font-family:inherit}
+.invite button{padding:9px 16px;border-radius:9px;border:none;background:var(--grad);color:#fff;font-weight:700;font-size:13px}
+
+/* comment thread */
+.comment{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+.comment:last-child{border-bottom:none}
+.comment .bubble{flex:1}
+.comment .who{font-size:12.5px;font-weight:700}
+.comment .who span{font-weight:400;color:var(--faint);font-size:11px;margin-left:6px}
+.comment .txt{font-size:13px;color:var(--text);margin-top:2px;line-height:1.5}
+.comment-box{margin-top:12px;display:flex;gap:8px}
+.comment-box input{flex:1;padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;background:var(--field);font-family:inherit}
+.comment-box button{padding:9px 14px;border-radius:9px;border:1.5px solid var(--line);background:var(--panel);font-weight:600;font-size:13px}
+
+/* role explainer cards */
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:34px 0}
+.role-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.role-card h3{font-size:15px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.role-card p{font-size:13px;color:var(--muted);line-height:1.55}
+
+/* features */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;padding:20px 0 70px}
+.fcard{background:var(--panel-2);border-radius:14px;padding:22px 24px}
+.fcard .ic{font-size:22px;margin-bottom:10px}
+.fcard h3{font-family:var(--ff-d);font-size:17px;font-weight:600;margin-bottom:6px}
+.fcard p{font-size:13.5px;color:var(--muted);line-height:1.55}
+.cta-band{text-align:center;padding:20px 0 60px}
+.cta-band a{margin:0 6px}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="brand" href="/"><span class="mk">✒</span> Inkletter</a>
+  <div style="display:flex;gap:10px">
+    <a href="/pricing" class="btn btn-ghost">Pricing</a>
+    <a href="/email-editor" class="btn btn-primary">Open the editor →</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="kicker">Teams &amp; Collaboration</span>
+    <h1>Build newsletters <em>together</em></h1>
+    <p>Invite your team, assign who can edit, comment or view, and work on a shared library of newsletters — with feedback right where the work happens.</p>
+    <div class="demo-banner">🚧 Preview — team collaboration is coming soon. This is a look at how it will work.</div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="mock">
+    <div class="mock-bar">
+      <span class="mock-dots"><span style="background:#E8998A"></span><span style="background:#E8C98A"></span><span style="background:#9BC98F"></span></span>
+      <span class="mock-title">📁 Autumn Campaign — shared group · 4 newsletters</span>
+    </div>
+    <div class="mock-body">
+      <!-- members -->
+      <div class="mock-col">
+        <div class="mock-h">Team members · 5</div>
+        <div class="member"><div class="avatar" style="background:#5750D8">MA</div><div class="info"><div class="nm">Maya (you)</div><div class="em">maya@smilepro.co</div></div><span class="role role-owner">Owner</span></div>
+        <div class="member"><div class="avatar" style="background:#2E8E6A">JD</div><div class="info"><div class="nm">Jordan Diaz</div><div class="em">jordan@smilepro.co</div></div><span class="role role-editor">Editor</span></div>
+        <div class="member"><div class="avatar" style="background:#B68A1E">SK</div><div class="info"><div class="nm">Sam Kerr</div><div class="em">sam@smilepro.co</div></div><span class="role role-commenter">Commenter</span></div>
+        <div class="member"><div class="avatar" style="background:#B65334">RP</div><div class="info"><div class="nm">Riya Patel</div><div class="em">riya@smilepro.co</div></div><span class="role role-editor">Editor</span></div>
+        <div class="member"><div class="avatar" style="background:#6E6557">TN</div><div class="info"><div class="nm">Theo Nowak</div><div class="em">theo@partner.io</div></div><span class="role role-viewer">Viewer</span></div>
+        <div class="invite">
+          <input type="email" placeholder="teammate@email.com" disabled>
+          <button onclick="soon()">Invite</button>
+        </div>
+      </div>
+      <!-- comments -->
+      <div class="mock-col">
+        <div class="mock-h">Comments · Halloween Whitening Sale</div>
+        <div class="comment"><div class="avatar" style="background:#B68A1E;width:30px;height:30px;font-size:11px">SK</div><div class="bubble"><div class="who">Sam Kerr<span>2h ago</span></div><div class="txt">Can we make the $40 promo headline a bit bigger? It gets lost on mobile.</div></div></div>
+        <div class="comment"><div class="avatar" style="background:#2E8E6A;width:30px;height:30px;font-size:11px">JD</div><div class="bubble"><div class="who">Jordan Diaz<span>1h ago</span></div><div class="txt">Good call — bumped it to 56px and tightened the subhead. 👍</div></div></div>
+        <div class="comment"><div class="avatar" style="background:#5750D8;width:30px;height:30px;font-size:11px">MA</div><div class="bubble"><div class="who">Maya<span>12m ago</span></div><div class="txt">Love it. Approving this one for send Friday.</div></div></div>
+        <div class="comment-box">
+          <input type="text" placeholder="Leave a comment…" disabled>
+          <button onclick="soon()">Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="roles">
+    <div class="role-card"><h3><span class="role role-editor">Editor</span></h3><p>Full access — create, edit, and export newsletters in the shared group.</p></div>
+    <div class="role-card"><h3><span class="role role-commenter">Commenter</span></h3><p>Can view everything and leave feedback and comments, but can't change the design.</p></div>
+    <div class="role-card"><h3><span class="role role-viewer">Viewer</span></h3><p>Read-only access — perfect for clients or stakeholders reviewing a draft.</p></div>
+    <div class="role-card"><h3><span class="role role-owner">Owner</span></h3><p>Manages the team, billing, and who has access to which newsletters or groups.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="features">
+    <div class="fcard"><div class="ic">📁</div><h3>Shared groups</h3><p>Organise newsletters into shared groups — a campaign, a client, a brand — and set access per group.</p></div>
+    <div class="fcard"><div class="ic">💬</div><h3>Inline comments</h3><p>Leave feedback right on a newsletter. Threads keep every decision in context, not lost in email.</p></div>
+    <div class="fcard"><div class="ic">🔐</div><h3>Granular roles</h3><p>Give each person exactly the access they need — edit, comment, or view — per newsletter or group.</p></div>
+    <div class="fcard"><div class="ic">🎨</div><h3>Shared brand kit</h3><p>One set of brand colours, fonts, and logos everyone on the team designs from automatically.</p></div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <a href="/pricing" class="btn btn-primary">See Team pricing →</a>
+  <a href="/email-editor" class="btn btn-ghost">Start designing solo</a>
+</section>
+
+<script>
+function soon(){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#211C14;color:#fff;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:600;z-index:99999;box-shadow:0 6px 20px rgba(0,0,0,.3)';
+  t.textContent='👋 Team collaboration is coming soon — join the beta to get early access.';
+  document.body.appendChild(t); setTimeout(()=>t.remove(),3200);
+}
+</script>
+</body>
+</html>

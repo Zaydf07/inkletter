@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkletter — AI newsletters that design themselves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1ECE1; --paper:#FFFFFF; --panel-2:#FBF7EF; --field:#F2EDE2;
+  --line:#E3DACA; --line-soft:#EDE6D8;
+  --text:#211C14; --muted:#6E6557; --faint:#A89E8C;
+  --ink:#4B43C4; --ink-d:#39329F; --clay:#B65334; --teal:#2E8EAC;
+  --grad:linear-gradient(165deg,#5750D8,#3F37AC);
+  --ff-d:'Newsreader',Georgia,serif; --ff-b:'Hanken Grotesk',system-ui,sans-serif; --ff-m:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--ff-b);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:rgba(75,67,196,.16)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+.kicker{font-family:var(--ff-m);font-size:11.5px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--clay)}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:50;background:rgba(241,236,225,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:76px}
+.brand{display:flex;align-items:center;gap:11px}
+.brand img{height:32px;width:auto;display:block}
+.brand-name{font-family:var(--ff-d);font-weight:600;font-size:21px;line-height:1}
+.brand-name small{display:block;font-family:var(--ff-m);font-weight:500;font-size:9px;letter-spacing:.34em;color:var(--faint);text-transform:uppercase;margin-top:3px}
+.btn{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:14.5px;border-radius:999px;padding:11px 24px;border:1px solid transparent;cursor:pointer;transition:.18s;font-family:inherit}
+.btn-ink{color:#fff;background:var(--grad);box-shadow:0 10px 24px -12px rgba(75,67,196,.7)}
+.btn-ink:hover{transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line);color:var(--text);background:var(--paper)}
+.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;padding:84px 0 76px}
+.hero-rule{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(var(--line-soft) 1px,transparent 1px);background-size:100% 34px;-webkit-mask-image:linear-gradient(180deg,transparent,#000 24%,#000 64%,transparent);mask-image:linear-gradient(180deg,transparent,#000 24%,#000 64%,transparent);opacity:.5}
+.hero-in{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center;max-width:1080px;margin:0 auto}
+.hero-copy{text-align:left}
+.hero .kicker{display:inline-flex;align-items:center;gap:12px;margin-bottom:22px}
+.hero .kicker::after{content:"";width:30px;height:1px;background:currentColor;opacity:.5}
+h1{font-family:var(--ff-d);font-weight:500;font-size:clamp(38px,5vw,62px);line-height:1.04;letter-spacing:-.02em}
+h1 em{font-style:italic;color:var(--ink)}
+.hero-sub{font-size:17px;color:var(--muted);max-width:480px;margin:24px 0 34px;line-height:1.66}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+.btn-lg{padding:15px 32px;font-size:16px}
+.hero-meta{margin-top:28px;font-family:var(--ff-m);font-size:12px;letter-spacing:.04em;color:var(--faint)}
+.hero-meta b{color:var(--muted);font-weight:600}
+@media(max-width:900px){
+  .hero-in{grid-template-columns:1fr;gap:44px}
+  .hero-copy{text-align:center}
+  .hero-sub{margin:24px auto 34px}
+  .hero-actions{justify-content:center}
+  .hero .kicker::before{content:"";width:30px;height:1px;background:currentColor;opacity:.5}
+}
+
+/* ── GENERATING ANIMATION ── */
+.gen-stage{position:relative}
+.gen-frame{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 30px 70px -30px rgba(33,28,20,.35);overflow:hidden;max-width:420px;margin:0 auto}
+.gen-bar{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line-soft);background:var(--panel-2);position:relative}
+.gen-dots span{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.gen-chip{margin-left:auto;font-family:var(--ff-m);font-size:10.5px;font-weight:600;letter-spacing:.04em;padding:4px 11px;border-radius:999px}
+.gen-chip.working{background:rgba(75,67,196,.1);color:var(--ink);opacity:0}
+.gen-chip.done{background:rgba(46,142,106,.12);color:#2E8E6A;position:absolute;right:14px;top:9px;opacity:0}
+.gen-canvas{min-height:430px}
+
+/* fade-up blocks */
+.ga{opacity:0}
+.gen-stage.play .ga{animation:gaIn .5s cubic-bezier(.3,1.2,.4,1) forwards;animation-delay:var(--d,0s)}
+@keyframes gaIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* typed lines of real copy */
+.tline{overflow:hidden;white-space:nowrap;max-width:0;display:block}
+.gen-stage.play .tline{animation:gtype .8s steps(32,end) forwards;animation-delay:var(--d,0s)}
+@keyframes gtype{from{max-width:0}to{max-width:100%}}
+
+/* status chips (11s cycle) */
+.gen-stage.play .gen-chip.working{animation:chipWork 11s linear forwards}
+@keyframes chipWork{0%{opacity:0}3%{opacity:1}80%{opacity:1}84%{opacity:0}100%{opacity:0}}
+.gen-stage.play .gen-chip.done{animation:chipDone 11s cubic-bezier(.3,1.4,.4,1) forwards}
+@keyframes chipDone{0%,83%{opacity:0;transform:scale(.7)}88%{opacity:1;transform:scale(1.07)}91%,100%{opacity:1;transform:scale(1)}}
+
+/* newsletter header */
+.gen-head{background:var(--grad);padding:17px 24px 15px;text-align:center}
+.gh-eyebrow{display:inline-block;font-family:var(--ff-m);font-size:8.5px;font-weight:700;letter-spacing:.22em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:5px}
+.gh-title{color:#fff;font-family:var(--ff-d);font-weight:600;font-size:20px;letter-spacing:-.01em;line-height:1.2;min-height:24px}
+.gh-title .tline{border-right:2px solid rgba(255,255,255,.85);margin:0 auto;max-width:0}
+.gen-stage.play .gh-title .tline{animation:gtype 1.2s steps(28,end) forwards,gcaret .65s step-end 6;animation-delay:1.2s}
+@keyframes gcaret{50%{border-color:transparent}}
+
+/* body copy */
+.gen-body{padding:15px 24px 0;font-size:11px;color:#57503F;line-height:2}
+.gsec-h{font-family:var(--ff-d);font-weight:700;font-size:13.5px;color:#211C14;margin:2px 0 3px}
+.gsec-h .n{color:var(--ink)}
+
+/* AI image that "renders" */
+.gimg{height:96px;border-radius:10px;margin:12px 24px 4px;position:relative;overflow:hidden;background:linear-gradient(110deg,#E7E2F8 30%,#F4F1FC 42%,#E7E2F8 54%);background-size:220% 100%}
+.gen-stage.play .gimg{animation:gaIn .5s ease forwards,shimmer 1.4s linear 2;animation-delay:var(--d,0s)}
+@keyframes shimmer{from{background-position:120% 0}to{background-position:-80% 0}}
+.gimg-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--ff-m);font-size:9.5px;color:var(--ink);opacity:.7}
+/* the finished art fades in over the shimmer */
+.gart{position:absolute;inset:0;opacity:0;background:linear-gradient(180deg,#2A2153 0%,#4A3B8F 34%,#8A63B8 55%,#D98E72 78%,#EEB98A 100%)}
+.gart::before{content:"";position:absolute;top:26%;left:50%;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;background:radial-gradient(circle,#FFE9C9,#F5B871 70%);box-shadow:0 0 22px 8px rgba(245,184,113,.55)}
+.gart::after{content:"";position:absolute;bottom:-14px;left:-8%;width:116%;height:44px;background:radial-gradient(58% 100% at 30% 100%,#1D1738 60%,transparent 61%),radial-gradient(58% 100% at 75% 100%,#241C46 60%,transparent 61%)}
+.gen-stage.play .gart{animation:gartIn 1s ease forwards;animation-delay:5.4s}
+@keyframes gartIn{from{opacity:0;filter:blur(6px)}to{opacity:1;filter:blur(0)}}
+.gimg-cap{margin:5px 24px 0;font-family:var(--ff-m);font-size:8.5px;color:var(--faint);text-align:center}
+
+/* CTA + footer */
+.gcta{text-align:center;padding:10px 0 15px}
+.gcta span{display:inline-block;background:var(--grad);color:#fff;font-size:12px;font-weight:700;padding:9px 26px;border-radius:999px;box-shadow:0 8px 18px -8px rgba(75,67,196,.6)}
+.gfoot{background:#F4F1E9;border-top:1px solid var(--line-soft);padding:9px;text-align:center;font-family:var(--ff-m);font-size:8.5px;color:var(--faint);letter-spacing:.06em}
+
+.spark{position:absolute;font-size:15px;color:var(--ink);opacity:.5;animation:sparkFloat 4.5s ease-in-out infinite;z-index:2}
+@keyframes sparkFloat{0%,100%{transform:translateY(0) scale(1);opacity:.45}50%{transform:translateY(-12px) scale(1.15);opacity:.85}}
+@media(max-width:900px){.gen-frame{max-width:370px}}
+
+/* FEATURES */
+.features{background:var(--panel-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:80px 0 88px}
+.sec-title{font-family:var(--ff-d);font-weight:500;font-size:clamp(28px,3.4vw,40px);letter-spacing:-.015em;line-height:1.1;margin-top:12px}
+.sec-title em{font-style:italic;color:var(--ink)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:44px}
+.fcard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:26px 26px 24px;transition:.18s}
+.fcard:hover{border-color:rgba(75,67,196,.35);box-shadow:0 14px 34px -20px rgba(33,28,20,.25);transform:translateY(-3px)}
+.fic{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:16px}
+.fcard h3{font-family:var(--ff-d);font-weight:600;font-size:18px;margin-bottom:8px}
+.fcard p{font-size:13.5px;color:var(--muted);line-height:1.6}
+
+/* HOW */
+.how{padding:84px 0 90px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:42px}
+.step{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:26px 24px 22px}
+.step .n{font-family:var(--ff-m);font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.14em;display:block;margin-bottom:10px}
+.step h3{font-family:var(--ff-d);font-weight:600;font-size:17px;margin-bottom:7px}
+.step p{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* CTA BAND */
+.cta-band{background:linear-gradient(162deg,#181428,#221D40);padding:72px 0;text-align:center}
+.cta-band h2{font-family:var(--ff-d);font-weight:500;font-size:clamp(26px,3.4vw,38px);color:#fff;letter-spacing:-.015em}
+.cta-band p{color:#B9B5E3;font-size:15px;margin:14px auto 30px;max-width:440px}
+
+/* FOOTER */
+.foot{padding:30px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.foot span{font-size:12.5px;color:var(--faint)}
+.foot .fm{font-family:var(--ff-m);font-size:11px;letter-spacing:.06em}
+@media(max-width:640px){.hero{padding:64px 0 52px}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="/">
+      <span style="width:34px;height:34px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex:none">✒</span>
+      <span class="brand-name">Inkletter<small>AI Newsletter Studio</small></span>
+    </a>
+    <div style="display:flex;align-items:center;gap:10px">
+      <a class="btn btn-ghost" href="/pricing">Pricing</a>
+      <a class="btn btn-ghost" href="/library">My Newsletters</a>
+      <a class="btn btn-ink" href="/email-editor">Open the editor →</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-rule"></div>
+  <div class="wrap hero-in">
+
+    <!-- Left: copy -->
+    <div class="hero-copy">
+      <span class="kicker">AI Email Newsletter Builder</span>
+      <h1>Newsletters that<br><em>design themselves</em></h1>
+      <p class="hero-sub">Describe your topic, pick a layout, and AI writes the whole newsletter — then fine-tune every section with a drag-and-drop editor and export clean, inbox-safe HTML.</p>
+      <div class="hero-actions">
+        <a class="btn btn-ink btn-lg" href="/email-editor">Start designing — it's free</a>
+      </div>
+      <p class="hero-meta"><b>12 starter layouts</b> · save your own · inline CSS · works with Mailchimp, ConvertKit &amp; every ESP</p>
+    </div>
+
+    <!-- Right: newsletter generating itself -->
+    <div class="gen-stage play" id="genStage" aria-hidden="true">
+      <span class="spark" style="top:-8px;left:-14px">✦</span>
+      <span class="spark" style="top:38%;right:-20px;animation-delay:1.4s;font-size:12px">✦</span>
+      <span class="spark" style="bottom:-4px;left:12%;animation-delay:2.6s;font-size:11px">✦</span>
+
+      <div class="gen-frame">
+        <div class="gen-bar">
+          <span class="gen-dots">
+            <span style="background:#E8998A"></span><span style="background:#E8C98A"></span><span style="background:#9BC98F"></span>
+          </span>
+          <span class="gen-chip working">✦ AI generating…</span>
+          <span class="gen-chip done">✓ Ready to send</span>
+        </div>
+
+        <div class="gen-canvas">
+
+          <!-- header band -->
+          <div class="gen-head ga" style="--d:.3s">
+            <span class="gh-eyebrow">☕ The Weekly Brew · Issue 42</span>
+            <div class="gh-title"><span class="tline">Five ideas worth stealing</span></div>
+          </div>
+
+          <!-- intro copy, typed line by line -->
+          <div class="gen-body">
+            <span class="tline" style="--d:2.7s">Good morning! This week we're looking at</span>
+            <span class="tline" style="--d:3.3s">how small teams ship big ideas — starting</span>
+            <span class="tline" style="--d:3.9s">with one habit anyone can borrow today.</span>
+          </div>
+
+          <!-- AI image renders in -->
+          <div class="gimg" style="--d:4.6s">
+            <span class="gimg-label">✦ generating image…</span>
+            <div class="gart"></div>
+          </div>
+          <div class="gimg-cap ga" style="--d:5.9s">✦ AI image · "sunrise over quiet mountains"</div>
+
+          <!-- article section -->
+          <div class="gen-body" style="padding-top:10px">
+            <div class="gsec-h ga" style="--d:6.4s"><span class="n">01 ·</span> Steal like an editor</div>
+            <span class="tline" style="--d:6.9s">The best newsletters aren't written —</span>
+            <span class="tline" style="--d:7.5s">they're edited. Draft fast, cut slower.</span>
+          </div>
+
+          <!-- CTA + footer -->
+          <div class="gcta ga" style="--d:8.4s"><span>Read the full issue →</span></div>
+          <div class="gfoot ga" style="--d:9s">SENT WITH ✒ INKLETTER · UNSUBSCRIBE</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+/* Loop the generating animation */
+(function(){
+  var stage = document.getElementById('genStage');
+  if (!stage) return;
+  setInterval(function(){
+    stage.classList.remove('play');
+    void stage.offsetWidth; /* force reflow so animations restart */
+    stage.classList.add('play');
+  }, 12000);
+})();
+</script>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="wrap">
+    <span class="kicker" style="color:var(--ink)">Everything in one canvas</span>
+    <h2 class="sec-title">Write less. <em>Ship more.</em></h2>
+    <div class="fgrid">
+      <div class="fcard">
+        <div class="fic" style="background:rgba(75,67,196,.1)">✦</div>
+        <h3>AI writes the copy</h3>
+        <p>Give it a topic, tone, and your website — it drafts the subject, sections, and CTA in seconds, on brand.</p>
+      </div>
+      <div class="fcard">
+        <div class="fic" style="background:rgba(182,83,52,.1)">⊞</div>
+        <h3>12 starter layouts</h3>
+        <p>Promos, digests, launches, invites, welcome series — pick one and every section is already styled.</p>
+      </div>
+      <div class="fcard">
+        <div class="fic" style="background:rgba(46,142,172,.12)">★</div>
+        <h3>Save your own layouts</h3>
+        <p>Design once, click ★ Save layout, and reuse your exact structure for every future issue.</p>
+      </div>
+      <div class="fcard">
+        <div class="fic" style="background:rgba(46,142,106,.12)">⇄</div>
+        <h3>Drag, drop, resize</h3>
+        <p>Reorder sections by grabbing the handle, resize by dragging edges, duplicate or delete on hover.</p>
+      </div>
+      <div class="fcard">
+        <div class="fic" style="background:rgba(123,65,201,.1)">🖼</div>
+        <h3>AI images &amp; GIFs</h3>
+        <p>Generate hero images from a text prompt or search GIFs and stickers without leaving the canvas.</p>
+      </div>
+      <div class="fcard">
+        <div class="fic" style="background:rgba(182,136,30,.12)">✉</div>
+        <h3>Inbox-safe export</h3>
+        <p>One click copies inline-CSS HTML that renders correctly in Gmail, Outlook, and every major client.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="wrap">
+    <span class="kicker">From idea to inbox</span>
+    <h2 class="sec-title">Four steps. <em>Five minutes.</em></h2>
+    <div class="steps">
+      <div class="step"><span class="n">STEP 01</span><h3>Pick a layout</h3><p>Choose from 12 starters — or one of your own saved layouts.</p></div>
+      <div class="step"><span class="n">STEP 02</span><h3>Generate with AI</h3><p>Type your topic and tone. AI fills every section with real copy.</p></div>
+      <div class="step"><span class="n">STEP 03</span><h3>Make it yours</h3><p>Drag sections, swap colours, drop in images, refine any text with AI.</p></div>
+      <div class="step"><span class="n">STEP 04</span><h3>Export &amp; send</h3><p>Copy the HTML into your email platform — or send directly.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-band">
+  <div class="wrap">
+    <h2>Your next newsletter is five minutes away</h2>
+    <p>No signup wall. Open the editor and start designing right now.</p>
+    <a class="btn btn-ink btn-lg" href="/email-editor" style="box-shadow:0 14px 40px -12px rgba(87,80,216,.6)">Open the editor →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap foot">
+    <span class="fm">INKLETTER · AI NEWSLETTER STUDIO</span>
+    <span>Newsletters that design themselves</span>
+    <span class="fm">© 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>

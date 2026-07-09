@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found — StreamInk Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F1ECE1;--panel:#fff;--line:#E3DACA;--text:#211C14;--muted:#6E6557;--faint:#A89E8C;--ink:#4B43C4;--clay:#B65334;--grad:linear-gradient(165deg,#5750D8,#3F37AC);--ff-d:'Newsreader',Georgia,serif;--ff-b:'Hanken Grotesk',system-ui,sans-serif;--ff-m:'JetBrains Mono',ui-monospace,monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--ff-b);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;-webkit-font-smoothing:antialiased}
+a{color:var(--ink);text-decoration:none}
+.num{font-family:var(--ff-d);font-size:clamp(100px,18vw,180px);font-weight:500;color:var(--ink);letter-spacing:-.04em;line-height:1;opacity:.12;user-select:none;position:absolute}
+.wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:0}
+.icon{font-size:52px;margin-bottom:18px;position:relative;z-index:1}
+h1{font-family:var(--ff-d);font-size:clamp(26px,3.5vw,38px);font-weight:500;letter-spacing:-.02em;margin-bottom:12px;position:relative;z-index:1}
+p{font-size:15px;color:var(--muted);max-width:400px;line-height:1.6;margin-bottom:32px;position:relative;z-index:1}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:600;font-size:14px;transition:.18s;border:1.5px solid transparent}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px -8px rgba(75,67,196,.55)}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line);color:var(--text);background:var(--panel)}
+.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+.path{font-family:var(--ff-m);font-size:11px;color:var(--faint);margin-top:40px;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="num">404</div>
+  <div class="icon">🗺️</div>
+  <h1>Page not found</h1>
+  <p>The page you're looking for doesn't exist or may have moved. Let's get you back on track.</p>
+  <div class="actions">
+    <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+    <a href="/" class="btn btn-ghost">← Back to home</a>
+  </div>
+  <p class="path" id="path"></p>
+</div>
+<script>
+const p = window.location.pathname;
+if (p && p !== '/') document.getElementById('path').textContent = 'Tried: ' + p;
+</script>
+</body>
+</html>
