@@ -1,0 +1,52 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+  command = "npm install"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Dynamic routes → Express function (path preserved)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/js/config.js"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+# Pretty page URLs → static HTML files
+[[redirects]]
+  from = "/email-editor"
+  to = "/email-editor.html"
+  status = 200
+
+[[redirects]]
+  from = "/library"
+  to = "/library.html"
+  status = 200
+
+[[redirects]]
+  from = "/my-newsletters"
+  to = "/library.html"
+  status = 200
+
+[[redirects]]
+  from = "/pricing"
+  to = "/pricing.html"
+  status = 200
+
+[[redirects]]
+  from = "/teams"
+  to = "/teams.html"
+  status = 200
+
+# Catch-all → branded 404
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
