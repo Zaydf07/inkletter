@@ -409,6 +409,77 @@ app.post('/api/wordpress/send', generalLimit, async (req, res) => {
   }
 });
 
+/* ─────────────────────────────────────
+   HOSTED ARCHIVE — publish a newsletter to a public URL,
+   list a workspace's issues, and serve each hosted page.
+   Persisted in Supabase when configured; otherwise a
+   process-memory store (fine for demo / single-instance).
+───────────────────────────────────── */
+const crypto = require('crypto');
+const _memPublished = []; // fallback store: {slug, workspace, title, html, subject, publishedAt}
+const SUPA_URL = process.env.SUPABASE_URL;
+const SUPA_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
+
+async function supaInsert(row) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/published_newsletters`, {
+    method: 'POST',
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify(row),
+  });
+  if (!r.ok) throw new Error(`Supabase ${r.status}: ${await r.text()}`);
+}
+async function supaSelect(where) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/published_newsletters?${where}`, {
+    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+  });
+  if (!r.ok) throw new Error(`Supabase ${r.status}`);
+  return r.json();
+}
+
+/* Publish → returns the public URL */
+app.post('/api/publish', generalLimit, async (req, res) => {
+  const { title, subject, html, workspace } = req.body;
+  if (!html) return res.status(400).json({ error: 'html is required' });
+  const slug = crypto.randomBytes(8).toString('base64url');
+  const ws   = (workspace || 'default').toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 40) || 'default';
+  const row  = { slug, workspace: ws, title: title || 'Newsletter', subject: subject || title || 'Newsletter', html, published_at: new Date().toISOString() };
+  try {
+    if (SUPA_URL && SUPA_KEY) await supaInsert(row);
+    else _memPublished.unshift({ ...row, publishedAt: row.published_at });
+    const base = process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    res.json({ ok: true, url: `${base}/p/${slug}`, archiveUrl: `${base}/archive/${ws}`, slug, workspace: ws });
+  } catch (e) {
+    console.error('[publish]', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/* Public hosted view of one newsletter */
+app.get('/p/:slug', async (req, res) => {
+  try {
+    let item;
+    if (SUPA_URL && SUPA_KEY) { const rows = await supaSelect(`slug=eq.${req.params.slug}&select=*&limit=1`); item = rows[0]; }
+    else item = _memPublished.find(x => x.slug === req.params.slug);
+    if (!item) return res.status(404).send('<h1 style="font-family:sans-serif;text-align:center;margin-top:80px">Newsletter not found</h1>');
+    res.type('html').send(item.html);
+  } catch (e) { res.status(500).send('Error loading newsletter'); }
+});
+
+/* Public archive index — "past issues" for a workspace/brand */
+app.get('/archive/:workspace', async (req, res) => {
+  const ws = req.params.workspace.toLowerCase();
+  let items = [];
+  try {
+    if (SUPA_URL && SUPA_KEY) items = await supaSelect(`workspace=eq.${ws}&select=slug,title,published_at&order=published_at.desc`);
+    else items = _memPublished.filter(x => x.workspace === ws);
+  } catch (e) { /* empty */ }
+  const rows = items.map(i => {
+    const d = new Date(i.published_at || i.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return `<a href="/p/${i.slug}" style="display:block;padding:18px 22px;border:1px solid #E3DACA;border-radius:12px;margin-bottom:12px;text-decoration:none;color:#211C14;background:#fff;transition:.15s" onmouseover="this.style.borderColor='#4B43C4'" onmouseout="this.style.borderColor='#E3DACA'"><div style="font-weight:700;font-size:16px;margin-bottom:3px">${(i.title||'Newsletter').replace(/</g,'&lt;')}</div><div style="font-size:12.5px;color:#A89E8C">${d}</div></a>`;
+  }).join('') || '<p style="color:#A89E8C;text-align:center;padding:40px">No published issues yet.</p>';
+  res.type('html').send(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Newsletter archive</title><link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500&family=Hanken+Grotesk:wght@400;600;700&display=swap" rel="stylesheet"></head><body style="margin:0;background:#F1ECE1;font-family:'Hanken Grotesk',sans-serif;color:#211C14"><div style="max-width:640px;margin:0 auto;padding:48px 24px 80px"><h1 style="font-family:'Newsreader',serif;font-weight:500;font-size:34px;margin-bottom:6px">Past issues</h1><p style="color:#6E6557;margin-bottom:28px">Every newsletter we've sent, in one place.</p>${rows}</div></body></html>`);
+});
+
 /* ── 404 ── */
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });

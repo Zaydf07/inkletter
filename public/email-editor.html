@@ -1621,7 +1621,12 @@
             <button class="em-rb-btn" style="margin-top:6px" onclick="exportPdf()">📄 PDF</button>
             <div style="font-size:9.5px;color:#A89E8C;margin-top:6px;line-height:1.5">PNG/JPG capture the whole newsletter as one image. PDF is print-ready.</div>
 
-            <div style="font-size:10px;color:#A89E8C;margin:12px 0 6px;text-transform:uppercase;letter-spacing:.1em;font-weight:700">Send &amp; Integrations</div>
+            <div style="font-size:10px;color:#A89E8C;margin:12px 0 6px;text-transform:uppercase;letter-spacing:.1em;font-weight:700">Publish to web</div>
+            <button class="em-rb-btn" onclick="publishToWeb()" style="font-weight:700">🌐 Publish &amp; get a shareable link</button>
+            <div id="pubResult" style="display:none;margin-top:8px;background:#F2EDE2;border-radius:8px;padding:10px 12px;font-size:12px"></div>
+            <div style="font-size:9.5px;color:#A89E8C;margin-top:6px;line-height:1.5">Hosts a public web version of this newsletter with a shareable URL, plus adds it to your brand's <strong>past-issues archive</strong> you can link from any website.</div>
+
+            <div style="font-size:10px;color:#A89E8C;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.1em;font-weight:700">Send &amp; Integrations</div>
             <button class="em-rb-btn" onclick="openSocketLabs()">📨 Send via SocketLabs</button>
             <button class="em-rb-btn" style="margin-top:6px" onclick="openWordPress()">🔌 Send to WordPress / MailPoet</button>
             <div style="font-size:9.5px;color:#A89E8C;margin-top:6px;line-height:1.5">SocketLabs sends directly. WordPress needs the free <a href="/downloads/inkletter-bridge.php" download style="color:#4B43C4">Inkletter Bridge plugin</a>.</div>
@@ -3193,6 +3198,31 @@ window.exportImage = async (format) => {
   const a = document.createElement('a');
   a.href = url; a.download = `newsletter.${format}`; a.click();
   showToast(`${format.toUpperCase()} downloaded`);
+};
+
+/* Publish a hosted, shareable web version + add to the brand archive */
+window.publishToWeb = async () => {
+  const html = getEmailHtml();
+  const title = (document.getElementById('em-topic').value || '').trim() || 'Newsletter';
+  const workspace = (document.getElementById('em-brand').value || 'default').trim();
+  showToast('Publishing…');
+  try {
+    const r = await fetch('/api/publish', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, subject: title, html, workspace }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Publish failed');
+    const box = document.getElementById('pubResult');
+    box.style.display = 'block';
+    box.innerHTML = `<div style="font-weight:700;color:#2E8E6A;margin-bottom:6px">✓ Published</div>
+      <div style="margin-bottom:6px"><a href="${d.url}" target="_blank" style="color:#4B43C4;word-break:break-all">${d.url}</a></div>
+      <button onclick="navigator.clipboard.writeText('${d.url}');showToast('Link copied')" style="font-size:11px;padding:5px 10px;border:1px solid #E3DACA;border-radius:6px;background:#fff;cursor:pointer;margin-right:6px">📋 Copy link</button>
+      <a href="${d.archiveUrl}" target="_blank" style="font-size:11px;padding:5px 10px;border:1px solid #E3DACA;border-radius:6px;background:#fff;text-decoration:none;color:#211C14">📚 View archive</a>`;
+    showToast('✓ Published to the web');
+  } catch (e) {
+    showToast('Publish failed: ' + e.message);
+  }
 };
 
 window.exportPdf = async () => {

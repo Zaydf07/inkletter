@@ -19,6 +19,19 @@
   status = 200
   force = true
 
+# hosted archive — published newsletter pages + archive index
+[[redirects]]
+  from = "/p/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/archive/*"
+  to = "/.netlify/functions/api"
+  status = 200
+  force = true
+
 # Pretty page URLs → static HTML files
 [[redirects]]
   from = "/email-editor"
